@@ -12,5 +12,9 @@ MPC_INSTALL_STAGING = YES
 MPC_DEPENDENCIES = gmp mpfr
 HOST_MPC_DEPENDENCIES = host-gmp host-mpfr
 
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_STATIC),y)
+	HOST_MPC_CONF_OPTS = --disable-shared
+endif
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

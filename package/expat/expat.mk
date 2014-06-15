@@ -16,5 +16,9 @@ EXPAT_LICENSE_FILES = COPYING
 EXPAT_CONF_OPTS = --without-docbook
 HOST_EXPAT_CONF_OPTS = --without-docbook
 
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_STATIC),y)
+	HOST_EXPAT_CONF_OPTS = --disable-shared
+endif
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

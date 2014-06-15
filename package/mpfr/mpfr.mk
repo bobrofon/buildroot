@@ -14,5 +14,9 @@ MPFR_DEPENDENCIES = gmp
 HOST_MPFR_DEPENDENCIES = host-gmp
 MPFR_MAKE_OPTS = RANLIB=$(TARGET_RANLIB)
 
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_STATIC),y)
+	HOST_MPFR_CONF_OPTS = --disable-shared
+endif
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

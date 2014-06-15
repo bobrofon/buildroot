@@ -20,6 +20,14 @@ config BR2_TOOLCHAIN_BUILDROOT_VENDOR
 
 	  If you're not sure, just leave the default "buildroot" value.
 
+config BR2_TOOLCHAIN_BUILDROOT_STATIC
+	bool "static toolchain"
+	help
+	  This option builds toolchain and gdb with static libraries
+	  of mpc,mpfr,gmp, and expat.
+	  It enable one to copy toolchain around to different directory
+	  and even to another machine. Now toolchain is relocatable, enjoy.
+
 choice
 	prompt "C library"
 	default BR2_TOOLCHAIN_BUILDROOT_UCLIBC

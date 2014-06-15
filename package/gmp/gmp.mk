@@ -25,5 +25,9 @@ else
 GMP_CONF_OPTS += --disable-cxx
 endif
 
+ifeq ($(BR2_TOOLCHAIN_BUILDROOT_STATIC),y)
+	HOST_GMP_CONF_OPTS = --disable-shared
+endif
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

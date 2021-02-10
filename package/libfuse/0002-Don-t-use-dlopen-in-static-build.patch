@@ -1,0 +1,53 @@
+From c5f93d206a1c8f31ee0eb118c663079687e8281e Mon Sep 17 00:00:00 2001
+From: Sergey Bobrenok <bobrofon@gmail.com>
+Date: Thu, 11 Feb 2021 00:30:13 +0700
+Subject: [PATCH] Don't use dlopen to allow static build
+
+dlopen is only used to work with loadable modules. There are only two
+modules: iconv, subdir, and they are optional. So we can still build
+libfuse without them.
+
+Signed-off-by: Sergey Bobrenok <bobrofon@gmail.com>
+---
+ lib/fuse.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/lib/fuse.c b/lib/fuse.c
+index d1d873a..3f47fdf 100644
+--- a/lib/fuse.c
++++ b/lib/fuse.c
+@@ -30,7 +30,6 @@
+ #include <limits.h>
+ #include <errno.h>
+ #include <signal.h>
+-#include <dlfcn.h>
+ #include <assert.h>
+ #include <poll.h>
+ #include <sys/param.h>
+@@ -225,6 +224,23 @@ static int fuse_context_ref;
+ static struct fusemod_so *fuse_current_so;
+ static struct fuse_module *fuse_modules;
+ 
++#define RTLD_NOW 0
++
++static void *dlopen(const char *filename, int flags)
++{
++	return NULL;
++}
++
++static int dlclose(void *handle)
++{
++	return 0;
++}
++
++static char *dlerror(void)
++{
++	return "dlopen is not available for static build";
++}
++
+ static int fuse_load_so_name(const char *soname)
+ {
+ 	struct fusemod_so *so;
+-- 
+2.29.2
+

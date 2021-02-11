@@ -1,0 +1,274 @@
+From 6d29232041a4d33b03e1bf298d3174ee876d134f Mon Sep 17 00:00:00 2001
+From: Sergey Bobrenok <bobrofon@gmail.com>
+Date: Thu, 11 Feb 2021 21:46:27 +0700
+Subject: [PATCH] Allow openssh to work on Android
+
+ * remove private key permissions check
+ * hardcode root user passwd information
+
+Signed-off-by: Sergey Bobrenok <bobrofon@gmail.com>
+---
+ Makefile.in              |  1 +
+ android-compat.c         | 28 ++++++++++++++++++++++++++++
+ android-compat.h         | 13 +++++++++++++
+ authfile.c               | 21 +--------------------
+ loginrec.c               |  2 ++
+ logintest.c              |  2 ++
+ misc.c                   |  2 ++
+ openbsd-compat/glob.c    |  2 ++
+ openbsd-compat/pwcache.c |  2 ++
+ scp.c                    |  2 ++
+ sftp-server-main.c       |  2 ++
+ ssh-add.c                |  2 ++
+ ssh-keygen.c             |  2 ++
+ ssh-keysign.c            |  2 ++
+ ssh.c                    |  2 ++
+ 15 files changed, 65 insertions(+), 20 deletions(-)
+ create mode 100644 android-compat.c
+ create mode 100644 android-compat.h
+
+diff --git a/Makefile.in b/Makefile.in
+index adb1977e..a29578a2 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -81,6 +81,7 @@ LIBOPENSSH_OBJS=\
+ 	sshbuf-getput-crypto.o \
+ 	krl.o \
+ 	bitmap.o \
++	android-compat.o \
+ 	${XMSS_OBJS}
+ 
+ LIBSSH_OBJS=${LIBOPENSSH_OBJS} \
+diff --git a/android-compat.c b/android-compat.c
+new file mode 100644
+index 00000000..b384f904
+--- /dev/null
++++ b/android-compat.c
+@@ -0,0 +1,28 @@
++#define ANDROID_COMPAT_INTERNAL
++#include "android-compat.h"
++
++#include <stddef.h>
++
++static struct passwd android_root_passwd = {
++	"root",
++	"x",
++	0,
++	0,
++	"root",
++	".",
++	"/system/bin/sh"
++};
++
++struct passwd *android_getpwuid(uid_t uid)
++{
++	struct passwd *pw = getpwuid(uid);
++	if (pw)
++	{
++		return pw;
++	}
++	if (!uid)
++	{
++		return &android_root_passwd;
++	}
++	return NULL;
++}
+diff --git a/android-compat.h b/android-compat.h
+new file mode 100644
+index 00000000..a397d1fa
+--- /dev/null
++++ b/android-compat.h
+@@ -0,0 +1,13 @@
++#ifndef ANDROIDCOMPAT_H
++#define ANDROIDCOMPAT_H
++
++#include <sys/types.h>
++#include <pwd.h>
++
++struct passwd *android_getpwuid(uid_t uid);
++
++#ifndef ANDROID_COMPAT_INTERNAL
++#define getpwuid(uid) android_getpwuid(uid)
++#endif
++
++#endif // ANDROIDCOMPAT_H
+diff --git a/authfile.c b/authfile.c
+index 37341189..2bab0300 100644
+--- a/authfile.c
++++ b/authfile.c
+@@ -139,28 +139,9 @@ sshkey_load_file(int fd, struct sshbuf *blob)
+ int
+ sshkey_perm_ok(int fd, const char *filename)
+ {
+-	struct stat st;
+-
+-	if (fstat(fd, &st) == -1)
+-		return SSH_ERR_SYSTEM_ERROR;
+ 	/*
+-	 * if a key owned by the user is accessed, then we check the
+-	 * permissions of the file. if the key owned by a different user,
+-	 * then we don't care.
++	 * On android key ownership means almost nothing so we don't care.
+ 	 */
+-#ifdef HAVE_CYGWIN
+-	if (check_ntsec(filename))
+-#endif
+-	if ((st.st_uid == getuid()) && (st.st_mode & 077) != 0) {
+-		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+-		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
+-		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+-		error("Permissions 0%3.3o for '%s' are too open.",
+-		    (u_int)st.st_mode & 0777, filename);
+-		error("It is required that your private key files are NOT accessible by others.");
+-		error("This private key will be ignored.");
+-		return SSH_ERR_KEY_BAD_PERMISSIONS;
+-	}
+ 	return 0;
+ }
+ 
+diff --git a/loginrec.c b/loginrec.c
+index e5289deb..4f8f85c3 100644
+--- a/loginrec.c
++++ b/loginrec.c
+@@ -186,6 +186,8 @@
+ # include <util.h>
+ #endif
+ 
++#include "android-compat.h"
++
+ /**
+  ** prototypes for helper functions in this file
+  **/
+diff --git a/logintest.c b/logintest.c
+index 4897ae0f..844bb719 100644
+--- a/logintest.c
++++ b/logintest.c
+@@ -47,6 +47,8 @@
+ 
+ #include "loginrec.h"
+ 
++#include "android-compat.h"
++
+ extern char *__progname;
+ 
+ #define PAUSE_BEFORE_LOGOUT 3
+diff --git a/misc.c b/misc.c
+index 88833d7f..e989ccea 100644
+--- a/misc.c
++++ b/misc.c
+@@ -73,6 +73,8 @@
+ #include "ssherr.h"
+ #include "platform.h"
+ 
++#include "android-compat.h"
++
+ /* remove newline at end of string */
+ char *
+ chop(char *s)
+diff --git a/openbsd-compat/glob.c b/openbsd-compat/glob.c
+index 7c97e67f..7a7f4b33 100644
+--- a/openbsd-compat/glob.c
++++ b/openbsd-compat/glob.c
+@@ -73,6 +73,8 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#include "android-compat.h"
++
+ #if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) || \
+     !defined(GLOB_HAS_GL_MATCHC) || !defined(GLOB_HAS_GL_STATV) || \
+     !defined(HAVE_DECL_GLOB_NOMATCH) || HAVE_DECL_GLOB_NOMATCH == 0 || \
+diff --git a/openbsd-compat/pwcache.c b/openbsd-compat/pwcache.c
+index 826c2378..a4d533c2 100644
+--- a/openbsd-compat/pwcache.c
++++ b/openbsd-compat/pwcache.c
+@@ -40,6 +40,8 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#include "android-compat.h"
++
+ #define	NCACHE	64			/* power of 2 */
+ #define	MASK	(NCACHE - 1)		/* bits to store with */
+ 
+diff --git a/scp.c b/scp.c
+index 0348d067..75c5d2cc 100644
+--- a/scp.c
++++ b/scp.c
+@@ -121,6 +121,8 @@
+ #include "progressmeter.h"
+ #include "utf8.h"
+ 
++#include "android-compat.h"
++
+ extern char *__progname;
+ 
+ #define COPY_BUFLEN	16384
+diff --git a/sftp-server-main.c b/sftp-server-main.c
+index 06566d36..3f677265 100644
+--- a/sftp-server-main.c
++++ b/sftp-server-main.c
+@@ -28,6 +28,8 @@
+ #include "misc.h"
+ #include "xmalloc.h"
+ 
++#include "android-compat.h"
++
+ void
+ cleanup_exit(int i)
+ {
+diff --git a/ssh-add.c b/ssh-add.c
+index ebfb8a32..ab475fbf 100644
+--- a/ssh-add.c
++++ b/ssh-add.c
+@@ -67,6 +67,8 @@
+ #include "ssherr.h"
+ #include "digest.h"
+ 
++#include "android-compat.h"
++
+ /* argv0 */
+ extern char *__progname;
+ 
+diff --git a/ssh-keygen.c b/ssh-keygen.c
+index 8c829cad..396db58e 100644
+--- a/ssh-keygen.c
++++ b/ssh-keygen.c
+@@ -64,6 +64,8 @@
+ #include "authfd.h"
+ #include "sshsig.h"
+ 
++#include "android-compat.h"
++
+ #ifdef WITH_OPENSSL
+ # define DEFAULT_KEY_TYPE_NAME "rsa"
+ #else
+diff --git a/ssh-keysign.c b/ssh-keysign.c
+index 6cfd5b46..e3b2cf1f 100644
+--- a/ssh-keysign.c
++++ b/ssh-keysign.c
+@@ -59,6 +59,8 @@
+ #include "uidswap.h"
+ #include "ssherr.h"
+ 
++#include "android-compat.h"
++
+ extern char *__progname;
+ 
+ static int
+diff --git a/ssh.c b/ssh.c
+index ee51823c..c7a8fe9a 100644
+--- a/ssh.c
++++ b/ssh.c
+@@ -113,6 +113,8 @@
+ #include "ssh-pkcs11.h"
+ #endif
+ 
++#include "android-compat.h"
++
+ extern char *__progname;
+ 
+ /* Saves a copy of argv for setproctitle emulation */
+-- 
+2.29.2
+

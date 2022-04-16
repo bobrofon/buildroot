@@ -13,6 +13,7 @@ LIBFUSE3_CPE_ID_PRODUCT = libfuse
 LIBFUSE3_INSTALL_STAGING = YES
 LIBFUSE3_DEPENDENCIES = $(if $(BR2_PACKAGE_LIBICONV),libiconv)
 LIBFUSE3_CONF_OPTS = \
+	-Dutils=false \
 	-Dexamples=false \
 	-Dudevrulesdir=/lib/udev/rules.d \
 	-Duseroot=false \

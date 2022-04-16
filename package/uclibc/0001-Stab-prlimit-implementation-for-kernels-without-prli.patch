@@ -1,0 +1,29 @@
+From ffbbc772d4b2f4f1fa991e6e2cd3e92e1d032007 Mon Sep 17 00:00:00 2001
+From: Sergey Bobrenok <bobrofon@gmail.com>
+Date: Sat, 16 Apr 2022 15:15:55 +0300
+Subject: [PATCH] Stab 'prlimit' implementation for kernels without 'prlimit'
+ syscall
+
+Signed-off-by: Sergey Bobrenok <bobrofon@gmail.com>
+---
+ libc/sysdeps/linux/common/prlimit.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/libc/sysdeps/linux/common/prlimit.c b/libc/sysdeps/linux/common/prlimit.c
+index cdb64ba0d..85ec8e0af 100644
+--- a/libc/sysdeps/linux/common/prlimit.c
++++ b/libc/sysdeps/linux/common/prlimit.c
+@@ -22,6 +22,10 @@ int
+ prlimit (__pid_t pid, enum __rlimit_resource resource,
+ 	     const struct rlimit *new_rlimit, struct rlimit *old_rlimit)
+ {
++#ifdef __NR_prlimit64
+   return INLINE_SYSCALL (prlimit64, 4, pid, resource, new_rlimit,
+ 			      old_rlimit);
++#else
++  return 0;
++#endif
+ }
+-- 
+2.35.1
+

@@ -17,7 +17,7 @@ HOST_M4_CONF_OPTS = --disable-static
 # standard, which is -std=gnu17 only when host gcc is >= 15. This
 # workaround can be removed when m4 will be updated to a version
 # including a fix for gcc-15.
-ifeq ($(BR2_HOST_GCC_AT_LEAST_15),y)
+ifeq ($(BR2_HOST_GCC_AT_LEAST_8),y)
 HOST_M4_CONF_ENV = CFLAGS="$(HOST_CFLAGS) -std=gnu17"
 endif
 

@@ -10,9 +10,10 @@ BR2_REPRODUCIBLE=y
 BR2_PER_PACKAGE_DIRECTORIES=y
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
-BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/bobrofon/buildroot/releases/download/2022.04.17-musl-trusty/arm-buildroot-linux-musleabi.tar.xz"
+BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/bobrofon/buildroot/releases/download/2026.04.24-musl-trusty/arm-buildroot-linux-musleabi.tar.xz"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="$(ARCH)-buildroot-linux-musleabi"
 BR2_TOOLCHAIN_EXTERNAL_GCC_10=y
+BR2_TOOLCHAIN_EXTERNAL_HEADERS_3_0=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_MUSL=y
 BR2_TARGET_LDFLAGS="-Wl,-z,max-page-size=16384"
 BR2_INIT_NONE=y

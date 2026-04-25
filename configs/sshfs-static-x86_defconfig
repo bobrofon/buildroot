@@ -6,9 +6,10 @@ BR2_PER_PACKAGE_DIRECTORIES=y
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
 BR2_TOOLCHAIN_EXTERNAL_DOWNLOAD=y
-BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/bobrofon/buildroot/releases/download/2022.04.17-musl-trusty/i686-buildroot-linux-musl.tar.xz"
+BR2_TOOLCHAIN_EXTERNAL_URL="https://github.com/bobrofon/buildroot/releases/download/2026.04.24-musl-trusty/i686-buildroot-linux-musl.tar.xz"
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="$(ARCH)-buildroot-linux-musl"
 BR2_TOOLCHAIN_EXTERNAL_GCC_10=y
+BR2_TOOLCHAIN_EXTERNAL_HEADERS_3_0=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_MUSL=y
 # BR2_TOOLCHAIN_EXTERNAL_HAS_SSP is not set
 BR2_TARGET_LDFLAGS="-Wl,-z,max-page-size=16384"

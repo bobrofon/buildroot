@@ -1,25 +1,28 @@
-From 917e22b70bc6b8a05a751ff88f196aca6352189a Mon Sep 17 00:00:00 2001
+From 1d96e242d6f62ecebc219830a5daf5fa898d0c75 Mon Sep 17 00:00:00 2001
 From: Sergey Bobrenok <bobrofon@gmail.com>
 Date: Mon, 10 Nov 2025 00:04:10 +0300
 Subject: [PATCH] Use 16k pages
 
 Signed-off-by: Sergey Bobrenok <bobrofon@gmail.com>
 ---
- configure.ac | 1 +
- 1 file changed, 1 insertion(+)
+ configure.ac | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/configure.ac b/configure.ac
-index 17fb1e609..b199cead8 100644
+index 17fb1e609..51ce8430a 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -186,6 +186,7 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
+@@ -186,6 +186,8 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
  	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,relro])
  	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,now])
  	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,noexecstack])
 +	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,max-page-size=16384])
++	OSSH_CHECK_LDFLAG_LINK([-Wl,-z,common-page-size=16384])
  	# NB. -ftrapv expects certain support functions to be present in
  	# the compiler library (libgcc or similar) to detect integer operations
  	# that can overflow. We must check that the result of enabling it
+
+base-commit: 166456cedad3962b83b848b1e9caf80794831f0f
 -- 
-2.51.1
+2.55.0
 
